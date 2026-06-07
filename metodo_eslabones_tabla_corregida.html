@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método de los Eslabones - Aplicación Interactiva</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { color: var(--primary); }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #64748b;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .tab-content.active { display: block; }
+
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .step-list { padding-left: 20px; }
+        .step-list li { margin-bottom: 10px; }
+
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .flashcard {
+            width: 400px;
+            height: 250px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .card-front {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .card-back {
+            background-color: #f1f5f9;
+            color: var(--text);
+            transform: rotateY(180deg);
+            border: 2px solid var(--primary);
+        }
+
+        .fc-btn {
+            background-color: #64748b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button.btn-calc {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button.btn-calc:hover { background-color: #059669; }
+
+        .resultado-sec {
+            margin-top: 30px;
+            border-top: 2px dashed var(--border);
+            padding-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid var(--border);
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th { background-color: #f1f5f9; }
+
+        canvas {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Método de los Eslabones</h1>
+        <p>Optimización de Distribución en Planta y Ergonomía</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('resumen')">1. Resumen</button>
+        <button class="tab-btn" onclick="openTab('flashcards')">2. Flashcards</button>
+        <button class="tab-btn" onclick="openTab('calculadora')">3. Aplicación Práctica</button>
+    </div>
+
+    <div id="resumen" class="tab-content active">
+        <h2>¿Qué es el Método de los Eslabones?</h2>
+        <p>Es una técnica analítica de distribución en planta (Layout) y diseño ergonómico. Su objetivo es organizar físicamente los elementos (máquinas, puestos, departamentos) reduciendo las distancias de transporte y la fatiga del operario, basándose en la <strong>frecuencia de movimientos</strong>.</p>
+        
+        <div class="resumen-grid">
+            <div>
+                <h3>Pasos para la aplicación:</h3>
+                <ol class="step-list">
+                    <li><strong>Identificar:</strong> Listar los puestos, máquinas o estaciones.</li>
+                    <li><strong>Recopilar datos:</strong> Registrar las rutas que sigue cada producto o el operario y su frecuencia.</li>
+                    <li><strong>Matriz de Eslabones:</strong> Contabilizar los viajes de ida y vuelta entre cada par de estaciones.</li>
+                    <li><strong>Diseñar el Grafo:</strong> Dibujar el diagrama conectando los nodos. Las líneas más gruesas indican mayor flujo y por ende, estaciones que deben estar juntas.</li>
+                </ol>
+            </div>
+            <div>
+                <h3>Regla de Oro:</h3>
+                <p style="background: #eff6ff; padding: 15px; border-left: 5px solid var(--primary); border-radius: 4px;">
+                    "A mayor flujo o cantidad de movimientos entre dos estaciones, menor debe ser la distancia física que las separe en el diseño final."
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="flashcards" class="tab-content">
+        <h2>Tarjetas de Estudio (Flashcards)</h2>
+        <p>Haz clic en la tarjeta para voltearla y ver la respuesta.</p>
+        
+        <div class="flashcard-container">
+            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                <div class="flashcard-inner">
+                    <div class="card-front" id="fc-pregunta">
+                        ¿Cuál es el objetivo principal del método de los eslabones?
+                    </div>
+                    <div class="card-back" id="fc-respuesta">
+                        Minimizar las distancias de transporte, los tiempos muertos y la fatiga del operario colocando juntos los elementos con mayor interacción.
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button class="fc-btn" onclick="cambiarCard(-1)">Anterior</button>
+                <button class="fc-btn" onclick="cambiarCard(1)">Siguiente</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="calculadora" class="tab-content">
+        <h2>Calculadora del Método de los Eslabones</h2>
+        <p>Ingresa la secuencia de producción para calcular automáticamente la matriz de frecuencias y generar el gráfico optimizado.</p>
+
+        <div class="form-group">
+            <label for="productos-input">Rutas de los Productos / Procesos:</label>
+            <p style="font-size: 13px; color: #64748b; margin: -5px 0 10px 0;">
+                Escribe un producto por línea con el formato: <strong>Nombre, Cantidad Diaria, Ruta (separada por guiones)</strong>.<br>
+                Ejemplo:<br>
+                Producto A, 50, M1-M2-M3-M4<br>
+                Producto B, 30, M1-M3-M2-M4
+            </p>
+            <textarea id="productos-input" rows="6">Producto A, 50, M1-M2-M3-M4
+Producto B, 30, M1-M3-M2-M4
+Producto C, 20, M2-M4-M1</textarea>
+        </div>
+
+        <button class="btn-calc" onclick="procesarMetodo()">Calcular y Generar Gráfica</button>
+
+        <div id="resultados-section" class="resultado-sec" style="display: none;">
+            <h3>1. Matriz de Frecuencia de Eslabones</h3>
+            <div id="tabla-contenedor"></div>
+
+            <h3>2. Diagrama de Eslabones (Grafo de Distribución)</h3>
+            <p style="font-size: 13px; color: #64748b;">Las líneas rojas/gruesas indican las conexiones prioritarias que deben estar lo más cerca posible en tu planta física.</p>
+            <canvas id="grafoCanvas" width="600" height="400"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    const cartas = [
+        { q: "¿Cuál es el objetivo principal del método?", a: "Minimizar las distancias de transporte, los tiempos de traslado y la fatiga colocando juntos los elementos con mayor interacción." },
+        { q: "¿Qué representa un 'eslabón'?", a: "El movimiento, flujo de materiales o trayecto que se realiza entre dos estaciones o máquinas de trabajo de forma directa." },
+        { q: "¿Cómo se determina la importancia de una conexión?", a: "Por la frecuencia (cantidad de viajes) acumulada de todos los productos que pasan entre esas dos estaciones específicas." },
+        { q: "¿Qué indica una línea muy gruesa en el grafo resultante?", a: "Indica una prioridad alta de cercanía. Esas dos estaciones deben colocarse adyacentes en la distribución real." }
+    ];
+    let cardIndex = 0;
+
+    function cambiarCard(dir) {
+        const card = document.querySelector('.flashcard');
+        card.classList.remove('flipped');
+        
+        setTimeout(() => {
+            cardIndex = (cardIndex + dir + cartas.length) % cartas.length;
+            document.getElementById('fc-pregunta').innerText = cartas[cardIndex].q;
+            document.getElementById('fc-respuesta').innerText = cartas[cardIndex].a;
+        }, 150);
+    }
+
+    function procesarMetodo() {
+        const input = document.getElementById('productos-input').value.trim();
+        if(!input) return alert("Por favor ingresa datos de producción.");
+
+        const lineas = input.split('\n');
+        let estacionesSet = new Set();
+        let eslabones = {};
+
+        lineas.forEach(linea => {
+            const partes = linea.split(',');
+            if(partes.length < 3) return;
+
+            const cant = parseInt(partes[1].trim());
+            const ruta = partes[2].trim().split('-');
+
+            ruta.forEach(e => estacionesSet.add(e.trim()));
+
+            for(let i = 0; i < ruta.length - 1; i++) {
+                let e1 = ruta[i].trim();
+                let e2 = ruta[i+1].trim();
+                
+                let par = [e1, e2].sort().join('-');
+
+                eslabones[par] = (eslabones[par] || 0) + cant;
+            }
+        });
+
+        const estaciones = Array.from(estacionesSet).sort();
+        
+        let tablaHtml = '<table><thead><tr><th>Estación</th>';
+        estaciones.forEach(e => tablaHtml += `<th>${e}</th>`);
+        tablaHtml += '</tr></thead><tbody>';
+
+        for (let i = 0; i < estaciones.length; i++) {
+            let eFil = estaciones[i];
+            tablaHtml += `<tr><td><strong>${eFil}</strong></td>`;
+            for (let j = 0; j < estaciones.length; j++) {
+                let eCol = estaciones[j];
+                if (i === j) {
+                    tablaHtml += '<td style="background:#f1f5f9; color:#94a3b8;">-</td>';
+                } else if (i < j) {
+                    let par = [eFil, eCol].sort().join('-');
+                    let valor = eslabones[par] || 0;
+                    tablaHtml += valor > 0 ? `<td style="font-weight:bold; color:#1e293b;">${valor}</td>` : '<td>-</td>';
+                } else {
+                    // Parte inferior vacía para conservar el formato del informe original de la universidad
+                    tablaHtml += '<td style="background:#fafafa; color:#cbd5e1;"></td>';
+                }
+            }
+            tablaHtml += '</tr>';
+        }
+        tablaHtml += '</tbody></table>';
+        document.getElementById('tabla-contenedor').innerHTML = tablaHtml;
+
+        document.getElementById('resultados-section').style.display = 'block';
+
+        dibujarGrafo(estaciones, eslabones);
+    }
+
+    function dibujarGrafo(estaciones, eslabones) {
+        const canvas = document.getElementById('grafoCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const centroX = canvas.width / 2;
+        const centroY = canvas.height / 2;
+        const radioCirculo = 130;
+        let posiciones = {};
+
+        estaciones.forEach((est, idx) => {
+            let angulo = (idx / estaciones.length) * 2 * Math.PI;
+            posiciones[est] = {
+                x: centroX + radioCirculo * Math.cos(angulo),
+                y: centroY + radioCirculo * Math.sin(angulo)
+            };
+        });
+
+        let maxFlujo = Math.max(...Object.values(eslabones), 1);
+
+        Object.keys(eslabones).forEach(par => {
+            const [e1, e2] = par.split('-');
+            const pos1 = posiciones[e1];
+            const pos2 = posiciones[e2];
+            const flujo = eslabones[par];
+
+            if(pos1 && pos2 && flujo > 0) {
+                let grosor = (flujo / maxFlujo) * 8;
+                
+                ctx.beginPath();
+                ctx.moveTo(pos1.x, pos1.y);
+                ctx.lineTo(pos2.x, pos2.y);
+                
+                let intensidad = Math.floor((flujo / maxFlujo) * 200);
+                ctx.strokeStyle = `rgb(${intensidad + 50}, 100, 150)`;
+                ctx.lineWidth = grosor;
+                ctx.stroke();
+
+                ctx.font = "bold 12px Arial";
+                ctx.fillStyle = "#1e293b";
+                let midX = (pos1.x + pos2.x) / 2;
+                let midY = (pos1.y + pos2.y) / 2;
+                ctx.fillText(flujo, midX + 5, midY - 5);
+            }
+        });
+
+        estaciones.forEach(est => {
+            const { x, y } = posiciones[est];
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 22, 0, 2 * Math.PI);
+            ctx.fillStyle = '#2563eb';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+
+            ctx.font = "bold 14px Arial";
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(est, x, y);
+        });
+    }
+</script>
+</body>
+</html>
